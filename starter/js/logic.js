@@ -7,45 +7,23 @@ var score = 0;
 var questionIndex = 0;
 
 var remainingTime = 60;
-var scorePoints = 20;
-var qMax = 4;
+var holdInterval = 0;
+var penalty = 10;
+var ulCreate = document.createElement("ul");
 
-// Function that starts the timer.
-function countdown() {
-  var timeInterval = setInterval(function () {
-    if (remainingTime > 1) {
-      timerEl.textContent = remainingTime;
-      remainingTime--;
-    } else if (remainingTime === 1) {
-      timerEl.textContent = remainingTime;
-      remainingTime--;
-    } else {
-      timerEl.textContent = "";
-      clearInterval(timeInterval);
-      hideAnswer();
-      showEnd();
-    }
-  }, 1000);
-}
-
-let currentQuestion = {};
-let acceptingAnswers = true;
-let score = 0;
-let availableQuestions = [];
-
-let quiz = [
+var quiz = [
   {
-    question: "commonly used data types do not include:",
+    QUestIon: "commonly used data types do not include:",
     choices: ["strings", "booleans", "alerts", "numbers"],
     answer: "alerts",
   },
   {
-    question: "the condition in an if/else statement is enclosed within ___.",
+    QUestIon: "the condition in an if/else statement is enclosed within ___.",
     choices: ["quotes", "curly brackets", "parentheses", "square brackets"],
     answer: "parentheses",
   },
   {
-    question: "arrays in javascript can be used to store ___.",
+    QUestIon: "arrays in javascript can be used to store ___.",
     choices: [
       "numbers and strings",
       "other arrays",
@@ -55,44 +33,92 @@ let quiz = [
     answer: "all of the above",
   },
   {
-    question:
+    QUestIon:
       "string values must be enclosed within ___ when being assigned to variables.",
     choices: ["commas", "curly brackets", "quotes", "parentheses"],
     answer: "quotes",
   },
   {
-    question:
+    QUestIon:
       "a very useful tool used during development and debugging for printing current content to the debugger is:",
     choices: ["javascript", "terminal/bash", "for loops", "console.log"],
     answer: "console.log",
   },
 ];
 
-// Function that starts the quiz; timer starts, home screen hidden & question screen shown, score in local storage is reset.
-startBtn.addEventListener("click", function () {
-  localStorage.setItem("recentScore", score);
-  hideHome();
-  showAnswer();
-  countdown();
+// Function that starts the timer button.
+timer.addEventListener("click", function () {
+  if (holdInterval === 0) {
+    holdInterval = setInterval(function () {
+      remainingTime--;
+      currentTime.textContent = "Time: " + remainingTime;
+
+      if (remainingTime <= 0) {
+        clearInterval(holdInterval);
+        allDone();
+        currentTime.textContent = "Time is up!";
+      }
+    }, 1000);
+  }
+  render(questionIndex);
 });
+
+// Function that shows questions screen .
+function render(questionIndex) {
+  questions.innerHTML = "";
+  ulCreate.innerHTML = "";
+
+  for (var i = 0; i < quiz.length; i++) {
+    var userQuiz = quiz[questionIndex].QUestIon;
+    var userChoices = quiz[questionIndex].choices;
+    questions.textContent = userQuiz;
+  }
+
+  userChoices.forEach(function (newItem) {
+    var listItem = document.createElement("li");
+    listItem.textContent = newItem;
+    questions.appendChild(ulCreate);
+    ulCreate.appendChild(listItem);
+    listItem.addEventListener("click", compare);
+  });
+}
 
 console.log("js works");
 
-// Function for username display on highscores
+// Function to compare choices with answers
+function compare(event) {
+  var element = event.target;
 
-// This should generate questions and ddisplay them on the screen
-function newQuestion() {
-  questionCount = 0;
-  score = 0;
-  availableQuestions = [...quiz];
-  newQuestion;
-}
+  if (element.matches("li")) {
+    var createDiv = document.createElement("div");
+    createDiv.setAttribute("id", "createDiv");
 
-// this function  starts the quiz and Stores the questions array into the availableQuestions array.
-function startQuiz() {
-  questionCount = 0;
-  score = 0;
-  availableQuestions = [...quiz];
-  newQuestion();
+    if (element.textContent == quiz[questionIndex].answer) {
+      score++;
+      createDiv.textContent =
+        "You got it right! The answer is:" + quiz[questionIndex].answer;
+    } else {
+      remainingTime = remainingTime - penalty;
+      createDiv.textContent =
+        "You got it wrong! The correct answer is:" + quiz[questionIndex].answer;
+    }
+  }
+
+  questionIndex++;
+
+  if (questionIndex >= quiz.length) {
+    allDone();
+    createDiv.textContent =
+      "End of quiz!" +
+      " " +
+      "You got  " +
+      score +
+      "/" +
+      quiz.length +
+      " Correct!";
+  } else {
+    render(questionIndex);
+  }
+
+  questions.appendChild(createDiv);
 }
-startQuiz();
